@@ -1,0 +1,1 @@
+console.log('fakestore-reports: avvio')
