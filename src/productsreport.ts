@@ -1,6 +1,6 @@
 import type { Cart, Product } from './types'
 import type { ReportContext } from './context'
-import { cartsInPeriod } from './period'
+import { buildReport } from './report'
 import { round2 } from './utils'
 
 export interface RankedProduct {
@@ -12,6 +12,9 @@ export interface RankedProduct {
   unitsSold: number
   revenue: number
 }
+
+// da tenere allineato al sort in topProducts
+const RANKED_BY = ['unitsSold desc', 'revenue desc', 'productId asc']
 
 function countUnits(carts: Cart[]) {
   const units = new Map<number, number>()
@@ -52,19 +55,11 @@ export function topProducts(carts: Cart[], products: Product[], limit = 3): Rank
 }
 
 export function buildProductsReport(carts: Cart[], products: Product[], ctx: ReportContext) {
-  return {
-    report: 'top-products',
-    generatedAt: ctx.generatedAt,
-    lastMonthAnchor: ctx.anchor,
-    periods: {
-      allTime: {
-        interval: null,
-        ranking: topProducts(carts, products),
-      },
-      lastMonth: {
-        interval: ctx.period,
-        ranking: topProducts(cartsInPeriod(carts, ctx.period), products),
-      },
-    },
-  }
+  return buildReport({
+    id: 'top-products',
+    rankedBy: RANKED_BY,
+    carts,
+    ctx,
+    rank: (periodCarts) => topProducts(periodCarts, products),
+  })
 }

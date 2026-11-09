@@ -1,6 +1,6 @@
 import type { Cart, Product, User } from './types'
 import type { ReportContext } from './context'
-import { cartsInPeriod } from './period'
+import { buildReport } from './report'
 import { round2 } from './utils'
 
 // anagrafica a null se l'utente non esiste: la spesa resta vera
@@ -20,6 +20,9 @@ interface Totals {
   items: number
   spent: number
 }
+
+// da tenere allineato al sort in topCustomers
+const RANKED_BY = ['totalSpent desc', 'items desc', 'userId asc']
 
 function sumByUser(carts: Cart[], productById: Map<number, Product>) {
   const totals = new Map<number, Totals>()
@@ -76,19 +79,11 @@ export function buildCustomersReport(
   users: User[],
   ctx: ReportContext,
 ) {
-  return {
-    report: 'top-customers',
-    generatedAt: ctx.generatedAt,
-    lastMonthAnchor: ctx.anchor,
-    periods: {
-      allTime: {
-        interval: null,
-        ranking: topCustomers(carts, products, users),
-      },
-      lastMonth: {
-        interval: ctx.period,
-        ranking: topCustomers(cartsInPeriod(carts, ctx.period), products, users),
-      },
-    },
-  }
+  return buildReport({
+    id: 'top-customers',
+    rankedBy: RANKED_BY,
+    carts,
+    ctx,
+    rank: (periodCarts) => topCustomers(periodCarts, products, users),
+  })
 }

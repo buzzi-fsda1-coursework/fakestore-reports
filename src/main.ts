@@ -4,6 +4,13 @@ import { findUnknownIds } from './integrity'
 import { buildProductsReport } from './productsReport'
 import { buildCustomersReport } from './customersReport'
 
+// textContent e non innerHTML: i titoli arrivano dall'API
+function render(text: string) {
+  const pre = document.createElement('pre')
+  pre.textContent = text
+  document.querySelector('#app')?.append(pre)
+}
+
 async function main() {
   const { products, carts, users } = await fetchAll()
 
@@ -16,13 +23,19 @@ async function main() {
   }
 
   const ctx = createReportContext(carts)
-  const productsReport = buildProductsReport(carts, products, ctx)
-  const customersReport = buildCustomersReport(carts, products, users, ctx)
+  const reports = [
+    buildProductsReport(carts, products, ctx),
+    buildCustomersReport(carts, products, users, ctx),
+  ]
 
-  console.log(JSON.stringify(productsReport, null, 2))
-  console.log(JSON.stringify(customersReport, null, 2))
+  for (const report of reports) {
+    const json = JSON.stringify(report, null, 2)
+    console.log(json)
+    render(json)
+  }
 }
 
 main().catch((err) => {
   console.error('Impossibile generare i report:', err)
+  render(`Impossibile generare i report: ${err instanceof Error ? err.message : String(err)}`)
 })
