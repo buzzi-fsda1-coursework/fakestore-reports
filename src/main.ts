@@ -1,13 +1,17 @@
 import { fetchAll } from './api'
 import { createReportContext } from './context'
 import { buildProductsReport } from './productsReport'
+import { buildCustomersReport } from './customersReport'
 
 async function main() {
-  const { products, carts } = await fetchAll()
+  const { products, carts, users } = await fetchAll()
   const ctx = createReportContext(carts)
 
-  const report = buildProductsReport(carts, products, ctx)
-  console.log(JSON.stringify(report, null, 2))
+  const productsReport = buildProductsReport(carts, products, ctx)
+  const customersReport = buildCustomersReport(carts, products, users, ctx)
+
+  console.log(JSON.stringify(productsReport, null, 2))
+  console.log(JSON.stringify(customersReport, null, 2))
 }
 
 main()
