@@ -1,4 +1,5 @@
 import type { Cart, Product } from './types'
+import { cartsInPeriod, lastMonth, latestCartDate } from './period'
 
 export interface RankedProduct {
   rank: number
@@ -48,4 +49,25 @@ export function topProducts(carts: Cart[], products: Product[], limit = 3): Rank
   )
 
   return rows.slice(0, limit).map((row, i) => ({ rank: i + 1, ...row }))
+}
+
+export function buildProductsReport(carts: Cart[], products: Product[]) {
+  const anchor = latestCartDate(carts)
+  const period = lastMonth(anchor)
+
+  return {
+    report: 'top-products',
+    generatedAt: new Date().toISOString(),
+    lastMonthAnchor: anchor.toISOString(),
+    periods: {
+      allTime: {
+        interval: null,
+        ranking: topProducts(carts, products),
+      },
+      lastMonth: {
+        interval: period,
+        ranking: topProducts(cartsInPeriod(carts, period), products),
+      },
+    },
+  }
 }
