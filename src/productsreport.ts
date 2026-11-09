@@ -27,18 +27,20 @@ export function topProducts(carts: Cart[], products: Product[], limit = 3): Rank
   const productById = new Map(products.map((p) => [p.id, p]))
   const units = countUnits(carts)
 
-  const rows = [...units].map(([productId, unitsSold]) => {
-    // TODO: prodotto non in catalogo
-    const product = productById.get(productId)!
-    return {
+  const rows: Omit<RankedProduct, 'rank'>[] = []
+  for (const [productId, unitsSold] of units) {
+    const product = productById.get(productId)
+    // senza catalogo non c'è prezzo né fatturato: la riga si scarta
+    if (!product) continue
+    rows.push({
       productId,
       title: product.title,
       category: product.category,
       unitPrice: product.price,
       unitsSold,
       revenue: round2(product.price * unitsSold),
-    }
-  })
+    })
+  }
 
   rows.sort((a, b) =>
     b.unitsSold - a.unitsSold ||

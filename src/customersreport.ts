@@ -3,12 +3,13 @@ import type { ReportContext } from './context'
 import { cartsInPeriod } from './period'
 import { round2 } from './utils'
 
+// anagrafica a null se l'utente non esiste: la spesa resta vera
 export interface RankedCustomer {
   rank: number
   userId: number
-  username: string
-  fullName: string
-  email: string
+  username: string | null
+  fullName: string | null
+  email: string | null
   orders: number
   items: number
   totalSpent: number
@@ -26,10 +27,11 @@ function sumByUser(carts: Cart[], productById: Map<number, Product>) {
     const t = totals.get(cart.userId) ?? { orders: 0, items: 0, spent: 0 }
     t.orders += 1
     for (const item of cart.products) {
-      // TODO: prodotto non in catalogo
-      const price = productById.get(item.productId)!.price
+      const product = productById.get(item.productId)
+      // stessa regola del report prodotti: senza prezzo la riga non conta
+      if (!product) continue
       t.items += item.quantity
-      t.spent += price * item.quantity
+      t.spent += product.price * item.quantity
     }
     totals.set(cart.userId, t)
   }
@@ -47,13 +49,12 @@ export function topCustomers(
   const totals = sumByUser(carts, productById)
 
   const rows = [...totals].map(([userId, t]) => {
-    // TODO: utente non in anagrafica
-    const user = userById.get(userId)!
+    const user = userById.get(userId)
     return {
       userId,
-      username: user.username,
-      fullName: `${user.name.firstname} ${user.name.lastname}`,
-      email: user.email,
+      username: user?.username ?? null,
+      fullName: user ? `${user.name.firstname} ${user.name.lastname}` : null,
+      email: user?.email ?? null,
       orders: t.orders,
       items: t.items,
       totalSpent: round2(t.spent),

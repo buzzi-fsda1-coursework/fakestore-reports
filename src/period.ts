@@ -10,8 +10,8 @@ export function toUtcDay(value: string | Date) {
   return new Date(value).toISOString().slice(0, 10)
 }
 
-export function latestCartDate(carts: Cart[]) {
-  // TODO: nessun carrello -> Invalid Date
+export function latestCartDate(carts: Cart[]): Date | null {
+  if (carts.length === 0) return null
   const times = carts.map((c) => new Date(c.date).getTime())
   return new Date(Math.max(...times))
 }
@@ -32,7 +32,8 @@ export function lastMonth(anchor: Date): Period {
   }
 }
 
-export function cartsInPeriod(carts: Cart[], period: Period) {
+export function cartsInPeriod(carts: Cart[], period: Period | null) {
+  if (!period) return []
   return carts.filter((c) => {
     const day = toUtcDay(c.date)
     return day >= period.start && day <= period.end
